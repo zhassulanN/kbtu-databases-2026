@@ -130,3 +130,127 @@ Foreign keys:
 
 \- StudentProject.ProjectID → Project.ProjectID
 
+
+
+
+
+
+
+\# Task 4.2: Advanced Normalization
+
+
+
+\## Table: CourseSchedule(StudentID, StudentMajor, CourseID, CourseName,
+
+\## InstructorID, InstructorName, TimeSlot, Room, Building)
+
+
+
+\## 1. Primary Key
+
+
+
+{StudentID, CourseID, TimeSlot}
+
+
+
+A course can have multiple sections (different instructor/time/room for
+
+the same CourseID), so CourseID alone isn't enough. TimeSlot, combined
+
+with CourseID, pins down one specific section.
+
+
+
+\## 2. Functional Dependencies
+
+
+
+StudentID → StudentMajor
+
+CourseID → CourseName
+
+InstructorID → InstructorName
+
+{CourseID, TimeSlot} → InstructorID, Room
+
+{TimeSlot, Room} → Building
+
+
+
+\## 3. BCNF Check
+
+
+
+None of the FDs have a superkey on the left side:
+
+\- StudentID is not a superkey (missing CourseID, TimeSlot)
+
+\- CourseID is not a superkey
+
+\- InstructorID is not a superkey
+
+\- {CourseID, TimeSlot} is not a superkey (missing StudentID)
+
+\- {TimeSlot, Room} is not a superkey
+
+
+
+All five FDs violate BCNF.
+
+
+
+\## 4. BCNF Decomposition
+
+
+
+Student(StudentID, StudentMajor)
+
+Course(CourseID, CourseName)
+
+Instructor(InstructorID, InstructorName)
+
+RoomSchedule(TimeSlot, Room, Building)
+
+SectionSchedule(CourseID, TimeSlot, InstructorID, Room)
+
+Enrollment(StudentID, CourseID, TimeSlot)
+
+
+
+Foreign keys:
+
+\- SectionSchedule.InstructorID → Instructor.InstructorID
+
+\- SectionSchedule.{TimeSlot, Room} → RoomSchedule.{TimeSlot, Room}
+
+\- Enrollment.StudentID → Student.StudentID
+
+\- Enrollment.{CourseID, TimeSlot} → SectionSchedule.{CourseID, TimeSlot}
+
+
+
+\## 5. Potential Information Loss
+
+
+
+No data is lost — the decomposition is lossless, since each step follows
+
+a valid FD, so the original table can be reconstructed via joins without
+
+producing spurious rows.
+
+
+
+However, this is not fully dependency-preserving: verifying that a given
+
+CourseID/TimeSlot maps to the correct Building now requires joining
+
+SectionSchedule and RoomSchedule, rather than checking a single table
+
+directly. This is a known trade-off of BCNF — it removes redundancy and
+
+anomalies, but doesn't always keep every dependency checkable within one
+
+table.
+
